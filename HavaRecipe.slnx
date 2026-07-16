@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HavaRecipe.Api.Tests/HavaRecipe.Api.Tests.csproj" />
+  <Project Path="HavaRecipe.Api/HavaRecipe.Api.csproj" />
+  <Project Path="HavaRecipe.AppHost/HavaRecipe.AppHost.csproj" />
+  <Project Path="HavaRecipe.ServiceDefaults/HavaRecipe.ServiceDefaults.csproj" />
+</Solution>

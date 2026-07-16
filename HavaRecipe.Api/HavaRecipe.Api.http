@@ -1,0 +1,31 @@
+@HavaRecipe.Api_HostAddress = http://localhost:5280
+
+### List recipes
+GET {{HavaRecipe.Api_HostAddress}}/recipes
+
+### Create a recipe
+POST {{HavaRecipe.Api_HostAddress}}/recipes
+Content-Type: application/json
+
+{
+  "slug": "classic-pancakes",
+  "name": "Classic Pancakes",
+  "recipeJsonLd": {
+    "@context": "https://schema.org",
+    "@type": "Recipe",
+    "name": "Classic Pancakes",
+    "recipeIngredient": ["2 cups flour", "2 eggs", "1.5 cups milk"],
+    "recipeInstructions": ["Mix dry ingredients.", "Whisk in eggs and milk.", "Cook on a griddle."]
+  }
+}
+
+### Get a recipe by slug
+GET {{HavaRecipe.Api_HostAddress}}/recipes/classic-pancakes
+
+### Import a recipe from a URL (returns suggested slug/name/recipeJsonLd for review)
+POST {{HavaRecipe.Api_HostAddress}}/recipes/import
+Content-Type: application/json
+
+{
+  "url": "https://www.allrecipes.com/recipe/16354/easy-meatloaf/"
+}
