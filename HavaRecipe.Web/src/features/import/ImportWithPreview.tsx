@@ -18,6 +18,7 @@ import { importRecipe } from '../../api/recipes'
 import { normalizeRecipeJsonLd } from '../../api/schemaOrg'
 import { JsonView } from '../../components/JsonView'
 import { RecipePreview } from './RecipePreview'
+import { SaveRecipe } from './SaveRecipe'
 
 const EXAMPLE_URL = 'https://www.allrecipes.com/recipe/16354/easy-meatloaf/'
 const LAST_URL_KEY = 'havarecipe:last-import-url'
@@ -116,6 +117,8 @@ export function ImportWithPreview() {
             </Stack>
           </Card>
         )}
+
+        {data && <SaveRecipe imported={data} />}
 
         {data && normalized && (
           <Tabs defaultValue="preview">
