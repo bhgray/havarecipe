@@ -1,0 +1,5 @@
+/* Mantine's own styles.css provides the reset and theming. Keep this minimal so it
+   doesn't fight AppShell layout. */
+body {
+  margin: 0;
+}

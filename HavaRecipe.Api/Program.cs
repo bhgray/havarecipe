@@ -31,6 +31,14 @@ builder.Services.AddHttpClient("RecipeImport", client =>
         "Mozilla/5.0 (compatible; HavaRecipeBot/1.0; +https://github.com/havarecipe)");
 });
 
+// Dev-only CORS so the Vite frontend (its own Aspire-assigned origin) can call the API.
+// AllowAnyOrigin is fine here because no credentials are sent; production should tighten
+// this to the real web origin.
+const string DevCorsPolicy = "dev-web";
+builder.Services.AddCors(options =>
+    options.AddPolicy(DevCorsPolicy, policy =>
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -48,6 +56,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors(DevCorsPolicy);
+}
 
 app.MapRecipeEndpoints();
 
