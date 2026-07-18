@@ -2,6 +2,7 @@ import { Anchor, AppShell, Group, Title } from '@mantine/core'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { RecipeList } from './features/recipes/RecipeList'
 import { ImportRecipe } from './features/import/ImportRecipe'
+import { ImportWithPreview } from './features/import/ImportWithPreview'
 
 export default function App() {
   return (
@@ -16,6 +17,9 @@ export default function App() {
             <Anchor component={Link} to="/import">
               Import
             </Anchor>
+            <Anchor component={Link} to="/import-preview">
+              Import with Preview
+            </Anchor>
           </Group>
         </Group>
       </AppShell.Header>
@@ -25,6 +29,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/recipes" replace />} />
           <Route path="/recipes" element={<RecipeList />} />
           <Route path="/import" element={<ImportRecipe />} />
+          <Route path="/import-preview" element={<ImportWithPreview />} />
         </Routes>
       </AppShell.Main>
     </AppShell>
