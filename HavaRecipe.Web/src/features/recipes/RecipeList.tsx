@@ -1,17 +1,16 @@
-import { useEffect, useState } from 'react'
 import { Alert, Container, Loader, Stack, Table, Text, Title } from '@mantine/core'
+import { useQuery } from '@tanstack/react-query'
 import { listRecipes } from '../../api/recipes'
-import type { RecipeSummary } from '../../api/types'
 
 export function RecipeList() {
-  const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    listRecipes()
-      .then(setRecipes)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
-  }, [])
+  const {
+    data: recipes,
+    error,
+    isPending,
+  } = useQuery({
+    queryKey: ['recipes'],
+    queryFn: listRecipes,
+  })
 
   return (
     <Container>
@@ -20,11 +19,11 @@ export function RecipeList() {
 
         {error && (
           <Alert color="red" title="Failed to load recipes">
-            {error}
+            {error.message}
           </Alert>
         )}
 
-        {!recipes && !error && <Loader />}
+        {isPending && <Loader />}
 
         {recipes && recipes.length === 0 && <Text c="dimmed">No recipes yet.</Text>}
 

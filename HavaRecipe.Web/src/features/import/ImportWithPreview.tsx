@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Alert,
   Anchor,
@@ -12,36 +12,63 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
+import { useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { importRecipe } from '../../api/recipes'
-import type { ImportRecipeResponse } from '../../api/types'
 import { normalizeRecipeJsonLd } from '../../api/schemaOrg'
 import { JsonView } from '../../components/JsonView'
 import { RecipePreview } from './RecipePreview'
 
 const EXAMPLE_URL = 'https://www.allrecipes.com/recipe/16354/easy-meatloaf/'
+const LAST_URL_KEY = 'havarecipe:last-import-url'
 
 export function ImportWithPreview() {
-  const [url, setUrl] = useState('')
-  const [result, setResult] = useState<ImportRecipeResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  // The imported URL lives in the query string (?url=...) rather than component state, so the
+  // view survives navigation and refresh and can be shared/bookmarked. TanStack Query then
+  // caches the result per URL, so coming back renders instantly instead of re-importing.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const committedUrl = searchParams.get('url') ?? ''
+
+  // Transient text-field state; only promoted to the query string when Import is clicked.
+  const [input, setInput] = useState(committedUrl)
+
+  // Keep the field in sync when the URL changes from outside the field (back/forward, or
+  // arriving via a shared link).
+  useEffect(() => setInput(committedUrl), [committedUrl])
+
+  // The header nav links to a bare /import-preview, which would drop ?url= and reset the view.
+  // Remember the last import and restore it when arriving without a param, so switching views
+  // doesn't lose your work; the query cache then renders it without re-importing.
+  useEffect(() => {
+    if (committedUrl) {
+      sessionStorage.setItem(LAST_URL_KEY, committedUrl)
+      return
+    }
+    const last = sessionStorage.getItem(LAST_URL_KEY)
+    if (last) setSearchParams({ url: last }, { replace: true })
+  }, [committedUrl, setSearchParams])
+
+  const { data, error, isFetching, refetch } = useQuery({
+    queryKey: ['import', committedUrl],
+    queryFn: () => importRecipe(committedUrl),
+    enabled: committedUrl.length > 0,
+  })
 
   const normalized = useMemo(
-    () => (result ? normalizeRecipeJsonLd(result.recipeJsonLd, result.suggestedName) : null),
-    [result],
+    () => (data ? normalizeRecipeJsonLd(data.recipeJsonLd, data.suggestedName) : null),
+    [data],
   )
 
-  async function handleImport() {
-    setLoading(true)
-    setError(null)
-    setResult(null)
-    try {
-      setResult(await importRecipe(url.trim()))
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setLoading(false)
+  function handleImport() {
+    const trimmed = input.trim()
+    if (!trimmed) return
+    if (trimmed === committedUrl) {
+      // Same URL: the query key wouldn't change, so ask for an explicit refresh rather than
+      // appearing to do nothing.
+      void refetch()
+      return
     }
+    setSearchParams({ url: trimmed })
   }
 
   return (
@@ -54,24 +81,24 @@ export function ImportWithPreview() {
             style={{ flex: 1 }}
             label="Recipe URL"
             placeholder={EXAMPLE_URL}
-            value={url}
-            onChange={(e) => setUrl(e.currentTarget.value)}
+            value={input}
+            onChange={(e) => setInput(e.currentTarget.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && url.trim() && !loading) handleImport()
+              if (e.key === 'Enter' && input.trim() && !isFetching) handleImport()
             }}
           />
-          <Button onClick={handleImport} loading={loading} disabled={!url.trim()}>
+          <Button onClick={handleImport} loading={isFetching} disabled={!input.trim()}>
             Import
           </Button>
         </Group>
 
         {error && (
           <Alert color="red" title="Import failed">
-            {error}
+            {error.message}
           </Alert>
         )}
 
-        {!result && !error && (
+        {!committedUrl && !error && (
           <Card withBorder radius="md" padding="lg">
             <Stack gap="xs">
               <Text fw={500}>Paste a recipe URL and click Import.</Text>
@@ -82,11 +109,7 @@ export function ImportWithPreview() {
               </Text>
               <Text size="sm">
                 Try an example:{' '}
-                <Anchor
-                  component="button"
-                  type="button"
-                  onClick={() => setUrl(EXAMPLE_URL)}
-                >
+                <Anchor component="button" type="button" onClick={() => setInput(EXAMPLE_URL)}>
                   Easy Meatloaf
                 </Anchor>
               </Text>
@@ -94,7 +117,7 @@ export function ImportWithPreview() {
           </Card>
         )}
 
-        {result && normalized && (
+        {data && normalized && (
           <Tabs defaultValue="preview">
             <Tabs.List>
               <Tabs.Tab value="preview">Preview</Tabs.Tab>
@@ -104,7 +127,7 @@ export function ImportWithPreview() {
               <RecipePreview recipe={normalized} />
             </Tabs.Panel>
             <Tabs.Panel value="raw" pt="md">
-              <JsonView data={result} />
+              <JsonView data={data} />
             </Tabs.Panel>
           </Tabs>
         )}
