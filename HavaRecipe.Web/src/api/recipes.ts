@@ -2,11 +2,16 @@ import { apiFetch } from './client'
 import type {
   CreateRecipeRequest,
   CreateRecipeResponse,
+  GetRecipeResponse,
   ImportRecipeResponse,
   RecipeSummary,
 } from './types'
 
 export const listRecipes = (): Promise<RecipeSummary[]> => apiFetch<RecipeSummary[]>('/recipes')
+
+// Throws ApiError with status 404 if the slug doesn't exist.
+export const getRecipe = (slug: string): Promise<GetRecipeResponse> =>
+  apiFetch<GetRecipeResponse>(`/recipes/${encodeURIComponent(slug)}`)
 
 export const importRecipe = (url: string): Promise<ImportRecipeResponse> =>
   apiFetch<ImportRecipeResponse>('/recipes/import', {

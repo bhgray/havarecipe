@@ -1,6 +1,7 @@
 import { Anchor, AppShell, Group, Title } from '@mantine/core'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { RecipeList } from './features/recipes/RecipeList'
+import { RecipeDetail } from './features/recipes/RecipeDetail'
 import { ImportWithPreview } from './features/import/ImportWithPreview'
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/recipes" replace />} />
           <Route path="/recipes" element={<RecipeList />} />
+          <Route path="/recipes/:slug" element={<RecipeDetail />} />
           {/* The old raw-JSON import view was retired; its output is the "Raw JSON" tab of
               the preview view. Redirect so existing links don't hit a blank page. */}
           <Route path="/import" element={<Navigate to="/import-preview" replace />} />

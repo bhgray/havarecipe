@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   Alert,
+  Anchor,
   Button,
   Container,
   Group,
@@ -11,11 +12,13 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { deleteRecipe, listRecipes } from '../../api/recipes'
 
 export function RecipeList() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   // Which row's delete confirmation is open (deleting is destructive and there's no undo).
   const [confirmSlug, setConfirmSlug] = useState<string | null>(null)
@@ -68,11 +71,22 @@ export function RecipeList() {
             </Table.Thead>
             <Table.Tbody>
               {recipes.map((r) => (
-                <Table.Tr key={r.id}>
-                  <Table.Td>{r.name}</Table.Td>
+                <Table.Tr
+                  key={r.id}
+                  style={{ cursor: 'pointer' }}
+                  onDoubleClick={() => navigate(`/recipes/${encodeURIComponent(r.slug)}`)}
+                >
+                  <Table.Td>
+                    {/* Also a link: double-click alone is undiscoverable and unreachable by
+                        keyboard, so the name stays a normal, focusable way in. */}
+                    <Anchor component={Link} to={`/recipes/${encodeURIComponent(r.slug)}`}>
+                      {r.name}
+                    </Anchor>
+                  </Table.Td>
                   <Table.Td>{r.slug}</Table.Td>
                   <Table.Td>{new Date(r.createdAt).toLocaleString()}</Table.Td>
-                  <Table.Td>
+                  {/* Don't let interacting with delete navigate to the recipe. */}
+                  <Table.Td onDoubleClick={(e) => e.stopPropagation()}>
                     <Popover
                       opened={confirmSlug === r.slug}
                       onChange={(opened) => setConfirmSlug(opened ? r.slug : null)}

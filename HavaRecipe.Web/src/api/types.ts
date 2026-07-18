@@ -17,6 +17,14 @@ export interface ImportRecipeResponse {
   recipeJsonLd: Record<string, unknown>
 }
 
+export interface GetRecipeResponse {
+  id: string
+  slug: string
+  name: string
+  createdAt: string
+  recipeJsonLd: Record<string, unknown>
+}
+
 export interface CreateRecipeRequest {
   slug: string
   name: string

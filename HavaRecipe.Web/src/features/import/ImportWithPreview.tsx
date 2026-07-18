@@ -17,7 +17,7 @@ import { useQuery } from '@tanstack/react-query'
 import { importRecipe } from '../../api/recipes'
 import { normalizeRecipeJsonLd } from '../../api/schemaOrg'
 import { JsonView } from '../../components/JsonView'
-import { RecipePreview } from './RecipePreview'
+import { RecipePreview } from '../../components/RecipePreview'
 import { SaveRecipe } from './SaveRecipe'
 
 const EXAMPLE_URL = 'https://www.allrecipes.com/recipe/16354/easy-meatloaf/'

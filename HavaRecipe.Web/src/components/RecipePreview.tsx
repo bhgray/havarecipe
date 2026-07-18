@@ -1,5 +1,5 @@
 import { Badge, Card, Divider, Group, Image, List, Stack, Text, Title } from '@mantine/core'
-import type { NormalizedRecipe } from '../../api/schemaOrg'
+import type { NormalizedRecipe } from '../api/schemaOrg'
 
 export function RecipePreview({ recipe }: { recipe: NormalizedRecipe }) {
   const badges: { label: string; value: string }[] = []
