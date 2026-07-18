@@ -1,8 +1,25 @@
-import { Alert, Container, Loader, Stack, Table, Text, Title } from '@mantine/core'
-import { useQuery } from '@tanstack/react-query'
-import { listRecipes } from '../../api/recipes'
+import { useState } from 'react'
+import {
+  Alert,
+  Button,
+  Container,
+  Group,
+  Loader,
+  Popover,
+  Stack,
+  Table,
+  Text,
+  Title,
+} from '@mantine/core'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { deleteRecipe, listRecipes } from '../../api/recipes'
 
 export function RecipeList() {
+  const queryClient = useQueryClient()
+
+  // Which row's delete confirmation is open (deleting is destructive and there's no undo).
+  const [confirmSlug, setConfirmSlug] = useState<string | null>(null)
+
   const {
     data: recipes,
     error,
@@ -10,6 +27,12 @@ export function RecipeList() {
   } = useQuery({
     queryKey: ['recipes'],
     queryFn: listRecipes,
+  })
+
+  const remove = useMutation({
+    mutationFn: deleteRecipe,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recipes'] }),
+    onSettled: () => setConfirmSlug(null),
   })
 
   return (
@@ -20,6 +43,12 @@ export function RecipeList() {
         {error && (
           <Alert color="red" title="Failed to load recipes">
             {error.message}
+          </Alert>
+        )}
+
+        {remove.isError && (
+          <Alert color="red" title="Delete failed">
+            {remove.error.message}
           </Alert>
         )}
 
@@ -34,6 +63,7 @@ export function RecipeList() {
                 <Table.Th>Name</Table.Th>
                 <Table.Th>Slug</Table.Th>
                 <Table.Th>Created</Table.Th>
+                <Table.Th w={100} />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -42,6 +72,51 @@ export function RecipeList() {
                   <Table.Td>{r.name}</Table.Td>
                   <Table.Td>{r.slug}</Table.Td>
                   <Table.Td>{new Date(r.createdAt).toLocaleString()}</Table.Td>
+                  <Table.Td>
+                    <Popover
+                      opened={confirmSlug === r.slug}
+                      onChange={(opened) => setConfirmSlug(opened ? r.slug : null)}
+                      position="left"
+                      withArrow
+                      shadow="md"
+                      width={260}
+                    >
+                      <Popover.Target>
+                        <Button
+                          variant="subtle"
+                          color="red"
+                          size="compact-sm"
+                          onClick={() => setConfirmSlug(confirmSlug === r.slug ? null : r.slug)}
+                        >
+                          Delete
+                        </Button>
+                      </Popover.Target>
+                      <Popover.Dropdown>
+                        <Stack gap="xs">
+                          <Text size="sm">
+                            Delete <b>{r.name}</b>? This can&apos;t be undone.
+                          </Text>
+                          <Group justify="flex-end" gap="xs">
+                            <Button
+                              variant="default"
+                              size="compact-sm"
+                              onClick={() => setConfirmSlug(null)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              color="red"
+                              size="compact-sm"
+                              loading={remove.isPending && remove.variables === r.slug}
+                              onClick={() => remove.mutate(r.slug)}
+                            >
+                              Delete
+                            </Button>
+                          </Group>
+                        </Stack>
+                      </Popover.Dropdown>
+                    </Popover>
+                  </Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>

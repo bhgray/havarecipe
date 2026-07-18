@@ -11,5 +11,6 @@ public static class Endpoints
         group.MapGetRecipe();
         group.MapListRecipes();
         group.MapImportRecipe();
+        group.MapDeleteRecipe();
     }
 }

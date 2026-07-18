@@ -20,3 +20,7 @@ export const createRecipe = (recipe: CreateRecipeRequest): Promise<CreateRecipeR
     method: 'POST',
     body: JSON.stringify(recipe),
   })
+
+// Throws ApiError with status 404 if the slug doesn't exist.
+export const deleteRecipe = (slug: string): Promise<void> =>
+  apiFetch<void>(`/recipes/${encodeURIComponent(slug)}`, { method: 'DELETE' })
