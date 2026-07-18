@@ -1,11 +1,24 @@
 import { Badge, Card, Divider, Group, Image, List, Stack, Text, Title } from '@mantine/core'
-import type { NormalizedRecipe } from '../api/schemaOrg'
+import type { RecipeView } from '../api/types'
 
-export function RecipePreview({ recipe }: { recipe: NormalizedRecipe }) {
+// The API returns durations as minutes so clients can present them however they like.
+function formatMinutes(total?: number): string | undefined {
+  if (!total || total <= 0) return undefined
+  const hours = Math.floor(total / 60)
+  const minutes = total % 60
+  return [hours > 0 ? `${hours} hr` : null, minutes > 0 ? `${minutes} min` : null]
+    .filter(Boolean)
+    .join(' ')
+}
+
+export function RecipePreview({ recipe }: { recipe: RecipeView }) {
   const badges: { label: string; value: string }[] = []
-  if (recipe.prepTime) badges.push({ label: 'Prep', value: recipe.prepTime })
-  if (recipe.cookTime) badges.push({ label: 'Cook', value: recipe.cookTime })
-  if (recipe.totalTime) badges.push({ label: 'Total', value: recipe.totalTime })
+  const prep = formatMinutes(recipe.prepMinutes)
+  const cook = formatMinutes(recipe.cookMinutes)
+  const total = formatMinutes(recipe.totalMinutes)
+  if (prep) badges.push({ label: 'Prep', value: prep })
+  if (cook) badges.push({ label: 'Cook', value: cook })
+  if (total) badges.push({ label: 'Total', value: total })
   if (recipe.recipeYield) badges.push({ label: 'Yield', value: recipe.recipeYield })
 
   return (
@@ -44,18 +57,18 @@ export function RecipePreview({ recipe }: { recipe: NormalizedRecipe }) {
           </>
         )}
 
-        {recipe.instructions.length > 0 && (
+        {recipe.steps.length > 0 && (
           <>
             <Divider label="Instructions" labelPosition="left" />
             <List type="ordered" spacing="sm">
-              {recipe.instructions.map((step, i) => (
+              {recipe.steps.map((step, i) => (
                 <List.Item key={i}>{step}</List.Item>
               ))}
             </List>
           </>
         )}
 
-        {recipe.ingredients.length === 0 && recipe.instructions.length === 0 && (
+        {recipe.ingredients.length === 0 && recipe.steps.length === 0 && (
           <Text c="dimmed" size="sm">
             No ingredients or instructions were found in this page's structured data.
           </Text>

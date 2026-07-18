@@ -16,7 +16,14 @@ namespace HavaRecipe.Api.Features.Recipes;
 public static class ImportRecipe
 {
     public record Request(string Url);
-    public record Response(string SuggestedSlug, string SuggestedName, JsonElement RecipeJsonLd);
+
+    // Recipe is the normalized, rendering-ready view; RecipeJsonLd is kept alongside it so
+    // callers can still inspect (and re-post) the original structured data.
+    public record Response(
+        string SuggestedSlug,
+        string SuggestedName,
+        JsonElement RecipeJsonLd,
+        RecipeView Recipe);
 
     public static RouteGroupBuilder MapImportRecipe(this RouteGroupBuilder group)
     {
@@ -102,7 +109,9 @@ public static class ImportRecipe
         if (cleaned is JsonObject cleanedObj) cleanedObj.Remove("review");
 
         var recipeJsonLd = JsonSerializer.SerializeToElement(cleaned);
-        return TypedResults.Ok(new Response(Slugify(name), name, recipeJsonLd));
+        var view = RecipeNormalization.Normalize(cleaned, name);
+
+        return TypedResults.Ok(new Response(Slugify(name), name, recipeJsonLd, view));
     }
 
     private static JsonNode? StripNulls(JsonNode? node)

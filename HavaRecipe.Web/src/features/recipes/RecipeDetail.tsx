@@ -1,10 +1,8 @@
-import { useMemo } from 'react'
 import { Alert, Anchor, Container, Loader, Stack, Tabs, Text } from '@mantine/core'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getRecipe } from '../../api/recipes'
 import { ApiError } from '../../api/client'
-import { normalizeRecipeJsonLd } from '../../api/schemaOrg'
 import { JsonView } from '../../components/JsonView'
 import { RecipePreview } from '../../components/RecipePreview'
 
@@ -16,11 +14,6 @@ export function RecipeDetail() {
     queryFn: () => getRecipe(slug),
     enabled: slug.length > 0,
   })
-
-  const normalized = useMemo(
-    () => (data ? normalizeRecipeJsonLd(data.recipeJsonLd, data.name) : null),
-    [data],
-  )
 
   const notFound = error instanceof ApiError && error.status === 404
 
@@ -42,7 +35,7 @@ export function RecipeDetail() {
           </Alert>
         )}
 
-        {data && normalized && (
+        {data && (
           <>
             <Text size="sm" c="dimmed">
               {data.slug} · saved {new Date(data.createdAt).toLocaleString()}
@@ -54,7 +47,7 @@ export function RecipeDetail() {
                 <Tabs.Tab value="raw">Raw JSON</Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="preview" pt="md">
-                <RecipePreview recipe={normalized} />
+                <RecipePreview recipe={data.recipe} />
               </Tabs.Panel>
               <Tabs.Panel value="raw" pt="md">
                 <JsonView data={data.recipeJsonLd} />

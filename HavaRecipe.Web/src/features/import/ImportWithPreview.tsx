@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Alert,
   Anchor,
@@ -15,7 +15,6 @@ import {
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { importRecipe } from '../../api/recipes'
-import { normalizeRecipeJsonLd } from '../../api/schemaOrg'
 import { JsonView } from '../../components/JsonView'
 import { RecipePreview } from '../../components/RecipePreview'
 import { SaveRecipe } from './SaveRecipe'
@@ -54,11 +53,6 @@ export function ImportWithPreview() {
     queryFn: () => importRecipe(committedUrl),
     enabled: committedUrl.length > 0,
   })
-
-  const normalized = useMemo(
-    () => (data ? normalizeRecipeJsonLd(data.recipeJsonLd, data.suggestedName) : null),
-    [data],
-  )
 
   function handleImport() {
     const trimmed = input.trim()
@@ -120,14 +114,14 @@ export function ImportWithPreview() {
 
         {data && <SaveRecipe imported={data} />}
 
-        {data && normalized && (
+        {data && (
           <Tabs defaultValue="preview">
             <Tabs.List>
               <Tabs.Tab value="preview">Preview</Tabs.Tab>
               <Tabs.Tab value="raw">Raw JSON</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="preview" pt="md">
-              <RecipePreview recipe={normalized} />
+              <RecipePreview recipe={data.recipe} />
             </Tabs.Panel>
             <Tabs.Panel value="raw" pt="md">
               <JsonView data={data} />
